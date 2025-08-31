@@ -46,7 +46,7 @@ dependencies:
   uuid: ^4.3.3
   provider: ^6.1.2
   http: ^1.4.0
-  intl: ^0.20.2
+  intl: ^0.19.0
   url_launcher: ^6.3.1
   package_info_plus: ^8.3.0
   google_sign_in: ^6.3.0
@@ -72,6 +72,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  flutter_gen: ^5.11.0
 
 
 dev_dependencies:
@@ -91,10 +92,13 @@ dev_dependencies:
     sdk: flutter
   test: any
   flutter_launcher_icons: ^0.14.3
+  # flutter_intl: 0.0.1
+
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icon/icon.jpg"
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -111,6 +115,27 @@ flutter:
     - assets/icon/icon.jpg
     - assets/icon/google.png
     - assets/icon/app_logo.png
+
+# Flutter Intl configuration for automated localization
+# flutter_intl:
+#   enabled: true
+#   class_name: AppLocalizations
+#   main_locale: en
+#   arb_dir: l10n
+#   output_dir: lib/l10n
+#   # Support for 11 Indian languages
+#   supported_locales:
+#     - en
+#     - hi
+#     - gu
+#     - bn
+#     - ta
+#     - te
+#     - mr
+#     - kn
+#     - ml
+#     - pa
+#     - or
 
 flutter_icons:
   android: true

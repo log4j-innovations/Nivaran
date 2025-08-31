@@ -15,6 +15,11 @@ class ConnectivityService with ChangeNotifier {
   bool _wasOffline = false;
   bool _isInitialized = false;
 
+  // Debouncing mechanism to prevent excessive notifications
+  Timer? _debounceTimer;
+  static const Duration _debounceDelay = Duration(milliseconds: 500);
+  ConnectivityResult? _lastNotifiedStatus;
+
   bool get isOnline => _isOnline;
   bool get wasOffline => _wasOffline;
 
@@ -63,7 +68,23 @@ class ConnectivityService with ChangeNotifier {
         markOnlineTransition();
       }
       _isOnline = newStatus;
-      notifyListeners();
+      
+      // Debounce notifications to prevent excessive rebuilds
+      _debounceConnectivityChange(result);
+    }
+  }
+
+  // Debounce connectivity changes to prevent excessive notifications
+  void _debounceConnectivityChange(ConnectivityResult result) {
+    // Cancel existing timer
+    _debounceTimer?.cancel();
+    
+    // Only notify if status is different from last notification
+    if (result != _lastNotifiedStatus) {
+      _debounceTimer = Timer(_debounceDelay, () {
+        _lastNotifiedStatus = result;
+        notifyListeners();
+      });
     }
   }
 
@@ -101,6 +122,7 @@ class ConnectivityService with ChangeNotifier {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _connectivitySubscription?.cancel();
     _connectivitySubscription = null;
     _isInitialized = false;

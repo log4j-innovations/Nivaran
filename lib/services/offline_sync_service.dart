@@ -19,7 +19,7 @@ class OfflineSyncService extends ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
   final ImageUploadService _imageUploadService = ImageUploadService();
   late final ConnectivityService _connectivityService;
-  
+
   bool _isSyncing = false;
   String _syncStatus = '';
   int _totalToSync = 0;
@@ -35,7 +35,8 @@ class OfflineSyncService extends ChangeNotifier {
 
   bool get isSyncing => _isSyncing;
   String get syncStatus => _syncStatus;
-  double get syncProgress => _totalToSync > 0 ? _syncedCount / _totalToSync : 0.0;
+  double get syncProgress =>
+      _totalToSync > 0 ? _syncedCount / _totalToSync : 0.0;
   int get totalToSync => _totalToSync;
   int get syncedCount => _syncedCount;
 
@@ -45,7 +46,10 @@ class OfflineSyncService extends ChangeNotifier {
       final stats = await _localDataService.getDatabaseStats();
       return stats['unsynced']! > 0;
     } catch (e) {
-      developer.log('Error checking for unsynced issues: $e', name: 'OfflineSyncService');
+      developer.log(
+        'Error checking for unsynced issues: $e',
+        name: 'OfflineSyncService',
+      );
       return false;
     }
   }
@@ -54,30 +58,45 @@ class OfflineSyncService extends ChangeNotifier {
   Future<void> initialize() async {
     try {
       await _localDataService.initializeDatabase();
-      
+
       // Register for auto-sync when connectivity is restored
       _connectivityService.setAutoSyncCallback(() {
         _triggerAutoSync();
       });
-      
-      developer.log('OfflineSyncService initialized with auto-sync callback', name: 'OfflineSyncService');
+
+      developer.log(
+        'OfflineSyncService initialized with auto-sync callback',
+        name: 'OfflineSyncService',
+      );
     } catch (e) {
-      developer.log('Error initializing OfflineSyncService: $e', name: 'OfflineSyncService');
+      developer.log(
+        'Error initializing OfflineSyncService: $e',
+        name: 'OfflineSyncService',
+      );
       rethrow;
     }
   }
 
   // Trigger automatic sync when connectivity is restored
   void _triggerAutoSync() async {
-    developer.log('Auto-sync triggered by connectivity restoration', name: 'OfflineSyncService');
-    
+    developer.log(
+      'Auto-sync triggered by connectivity restoration',
+      name: 'OfflineSyncService',
+    );
+
     // Check if there are unsynced issues before starting sync
     final unsyncedIssues = await getUnsyncedIssues();
     if (unsyncedIssues.isNotEmpty) {
-      developer.log('Found ${unsyncedIssues.length} unsynced issues, starting auto-sync', name: 'OfflineSyncService');
+      developer.log(
+        'Found ${unsyncedIssues.length} unsynced issues, starting auto-sync',
+        name: 'OfflineSyncService',
+      );
       await syncUnsyncedIssues();
     } else {
-      developer.log('No unsynced issues found, skipping auto-sync', name: 'OfflineSyncService');
+      developer.log(
+        'No unsynced issues found, skipping auto-sync',
+        name: 'OfflineSyncService',
+      );
     }
   }
 
@@ -93,13 +112,13 @@ class OfflineSyncService extends ChangeNotifier {
   }) async {
     try {
       developer.log('Saving issue offline', name: 'OfflineSyncService');
-      
+
       // Generate unique local ID
       final localId = const Uuid().v4();
-      
+
       // Store image locally
       final localImagePath = await _storeImageLocally(imagePath, localId);
-      
+
       // Create LocalIssue
       final localIssue = LocalIssue(
         localId: localId,
@@ -114,19 +133,22 @@ class OfflineSyncService extends ChangeNotifier {
         username: user.username ?? 'Unknown User',
         status: 'Reported',
         isSynced: false,
-        metadata: {
-          'created_offline': true,
-          'app_version': '2.0.2',
-        },
+        metadata: {'created_offline': true, 'app_version': '2.0.2'},
       );
-      
+
       // Save to local database
       await _localDataService.insertIssue(localIssue);
-      
-      developer.log('Issue saved offline with ID: $localId', name: 'OfflineSyncService');
+
+      developer.log(
+        'Issue saved offline with ID: $localId',
+        name: 'OfflineSyncService',
+      );
       return localId;
     } catch (e) {
-      developer.log('Error saving issue offline: $e', name: 'OfflineSyncService');
+      developer.log(
+        'Error saving issue offline: $e',
+        name: 'OfflineSyncService',
+      );
       rethrow;
     }
   }
@@ -136,23 +158,30 @@ class OfflineSyncService extends ChangeNotifier {
     try {
       final appDocDir = await getApplicationDocumentsDirectory();
       final offlineImagesDir = Directory('${appDocDir.path}/offline_images');
-      
+
       // Create directory if it doesn't exist
       if (!await offlineImagesDir.exists()) {
         await offlineImagesDir.create(recursive: true);
       }
-      
+
       // Copy image to local storage with unique name
       final sourceFile = File(sourcePath);
       final extension = sourcePath.split('.').last;
-      final localImagePath = '${offlineImagesDir.path}/${localId}_original.$extension';
-      
+      final localImagePath =
+          '${offlineImagesDir.path}/${localId}_original.$extension';
+
       await sourceFile.copy(localImagePath);
-      
-      developer.log('Image stored locally: $localImagePath', name: 'OfflineSyncService');
+
+      developer.log(
+        'Image stored locally: $localImagePath',
+        name: 'OfflineSyncService',
+      );
       return localImagePath;
     } catch (e) {
-      developer.log('Error storing image locally: $e', name: 'OfflineSyncService');
+      developer.log(
+        'Error storing image locally: $e',
+        name: 'OfflineSyncService',
+      );
       rethrow;
     }
   }
@@ -162,7 +191,10 @@ class OfflineSyncService extends ChangeNotifier {
     try {
       return await _localDataService.getUnsyncedIssues();
     } catch (e) {
-      developer.log('Error getting unsynced issues: $e', name: 'OfflineSyncService');
+      developer.log(
+        'Error getting unsynced issues: $e',
+        name: 'OfflineSyncService',
+      );
       return [];
     }
   }
@@ -176,17 +208,26 @@ class OfflineSyncService extends ChangeNotifier {
         final imageFile = File(issue.localImagePath!);
         if (await imageFile.exists()) {
           await imageFile.delete();
-          developer.log('Deleted local image: ${issue.localImagePath}', name: 'OfflineSyncService');
+          developer.log(
+            'Deleted local image: ${issue.localImagePath}',
+            name: 'OfflineSyncService',
+          );
         }
       }
-      
+
       // Delete from database
       await _localDataService.deleteLocalIssue(localId);
-      developer.log('Deleted unsynced issue: $localId', name: 'OfflineSyncService');
-      
+      developer.log(
+        'Deleted unsynced issue: $localId',
+        name: 'OfflineSyncService',
+      );
+
       notifyListeners();
     } catch (e) {
-      developer.log('Error deleting unsynced issue: $e', name: 'OfflineSyncService');
+      developer.log(
+        'Error deleting unsynced issue: $e',
+        name: 'OfflineSyncService',
+      );
       rethrow;
     }
   }
@@ -202,7 +243,10 @@ class OfflineSyncService extends ChangeNotifier {
       // Check connectivity
       final connectivityResult = await _connectivityService.checkConnectivity();
       if (connectivityResult == ConnectivityResult.none) {
-        developer.log('No connectivity, skipping sync', name: 'OfflineSyncService');
+        developer.log(
+          'No connectivity, skipping sync',
+          name: 'OfflineSyncService',
+        );
         return;
       }
 
@@ -222,8 +266,12 @@ class OfflineSyncService extends ChangeNotifier {
         return;
       }
 
-      developer.log('Starting sync of ${_totalToSync} issues', name: 'OfflineSyncService');
-      _syncStatus = 'Syncing $_totalToSync issue${_totalToSync > 1 ? 's' : ''}...';
+      developer.log(
+        'Starting sync of $_totalToSync issues',
+        name: 'OfflineSyncService',
+      );
+      _syncStatus =
+          'Syncing $_totalToSync issue${_totalToSync > 1 ? 's' : ''}...';
       notifyListeners();
 
       int failedCount = 0;
@@ -234,26 +282,39 @@ class OfflineSyncService extends ChangeNotifier {
 
           await _syncSingleIssue(issue);
           _syncedCount++;
-          
-          developer.log('Synced issue ${issue.localId} (${_syncedCount}/$_totalToSync)', name: 'OfflineSyncService');
+
+          developer.log(
+            'Synced issue ${issue.localId} ($_syncedCount/$_totalToSync)',
+            name: 'OfflineSyncService',
+          );
         } catch (e) {
           failedCount++;
-          developer.log('Failed to sync issue ${issue.localId}: $e', name: 'OfflineSyncService');
-          await _localDataService.updateIssueSyncError(issue.localId, e.toString());
+          developer.log(
+            'Failed to sync issue ${issue.localId}: $e',
+            name: 'OfflineSyncService',
+          );
+          await _localDataService.updateIssueSyncError(
+            issue.localId,
+            e.toString(),
+          );
         }
       }
 
       // Set final sync status message
       if (failedCount == 0) {
-        _syncStatus = 'Sync complete! $_syncedCount issue${_syncedCount > 1 ? 's' : ''} synced successfully';
+        _syncStatus =
+            'Sync complete! $_syncedCount issue${_syncedCount > 1 ? 's' : ''} synced successfully';
       } else if (_syncedCount > 0) {
-        _syncStatus = 'Sync completed with issues: $_syncedCount synced, $failedCount failed';
+        _syncStatus =
+            'Sync completed with issues: $_syncedCount synced, $failedCount failed';
       } else {
         _syncStatus = 'Sync failed: Unable to sync any issues';
       }
-      
-      developer.log('Sync completed: $_syncedCount/$_totalToSync issues synced, $failedCount failed', name: 'OfflineSyncService');
-      
+
+      developer.log(
+        'Sync completed: $_syncedCount/$_totalToSync issues synced, $failedCount failed',
+        name: 'OfflineSyncService',
+      );
     } catch (e) {
       _syncStatus = 'Sync failed: $e';
       developer.log('Sync failed: $e', name: 'OfflineSyncService');
@@ -267,7 +328,7 @@ class OfflineSyncService extends ChangeNotifier {
   Future<void> _syncSingleIssue(LocalIssue localIssue) async {
     try {
       String? imageUrl;
-      
+
       // Upload image if it exists locally
       if (localIssue.localImagePath != null) {
         final imageFile = File(localIssue.localImagePath!);
@@ -312,21 +373,26 @@ class OfflineSyncService extends ChangeNotifier {
 
       // Add to Firebase
       final firebaseId = await _firestoreService.addIssueWithId(issueData);
-      
+
       // Update local issue as synced
       await _localDataService.updateIssueSync(localIssue.localId, firebaseId);
-      
+
       // Clean up local image after successful sync
       if (localIssue.localImagePath != null) {
         final imageFile = File(localIssue.localImagePath!);
         if (await imageFile.exists()) {
           await imageFile.delete();
-          developer.log('Cleaned up local image after sync: ${localIssue.localImagePath}', name: 'OfflineSyncService');
+          developer.log(
+            'Cleaned up local image after sync: ${localIssue.localImagePath}',
+            name: 'OfflineSyncService',
+          );
         }
       }
-      
     } catch (e) {
-      developer.log('Error syncing single issue: $e', name: 'OfflineSyncService');
+      developer.log(
+        'Error syncing single issue: $e',
+        name: 'OfflineSyncService',
+      );
       rethrow;
     }
   }
@@ -356,7 +422,10 @@ class OfflineSyncService extends ChangeNotifier {
   Future<void> cacheIssuesForOffline(List<Issue> issues) async {
     try {
       await _localDataService.cacheOnlineIssues(issues);
-      developer.log('Cached ${issues.length} issues for offline viewing', name: 'OfflineSyncService');
+      developer.log(
+        'Cached ${issues.length} issues for offline viewing',
+        name: 'OfflineSyncService',
+      );
     } catch (e) {
       developer.log('Error caching issues: $e', name: 'OfflineSyncService');
     }
@@ -368,7 +437,10 @@ class OfflineSyncService extends ChangeNotifier {
       final localIssues = await _localDataService.getCachedIssues();
       return localIssues.map((localIssue) => localIssue.toIssue()).toList();
     } catch (e) {
-      developer.log('Error getting cached issues: $e', name: 'OfflineSyncService');
+      developer.log(
+        'Error getting cached issues: $e',
+        name: 'OfflineSyncService',
+      );
       return [];
     }
   }

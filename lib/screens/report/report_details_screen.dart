@@ -900,23 +900,23 @@ If you're uncertain, err on the side of marking it as not a duplicate (false).
                           padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 16.0),
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: isOffline ? Colors.grey[200] : (_isDetectingUrgency ? Colors.yellow[50] : (_detectedUrgency == null ? Colors.grey[100] : _getUrgencyColor(_detectedUrgency!).withAlpha(26))),
+                            color: isOffline ? Colors.grey[200] : (_isDetectingUrgency ? Colors.yellow[50] : (_detectedUrgency == null ? Colors.grey[100] : _getUrgencyColor(_detectedUrgency).withAlpha(26))),
                             borderRadius: BorderRadius.circular(8.0),
                             border: Border.all(
                               color: isOffline ? Colors.grey[400]! : (_isDetectingUrgency ? Colors.orange.shade300 :
-                                     (_detectedUrgency == null ? Colors.grey[350]! : _getUrgencyColor(_detectedUrgency!)))
+                                     (_detectedUrgency == null ? Colors.grey[350]! : _getUrgencyColor(_detectedUrgency)))
                             )
                           ),
                           child: Row(
                             children: [
-                              if (_detectedUrgency != null) ...[
-                                Icon(
-                                  _getUrgencyIcon(_detectedUrgency!),
-                                  color: isOffline ? Colors.grey[600] : _getUrgencyColor(_detectedUrgency!),
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                              ],
+                              ...[
+                              Icon(
+                                _getUrgencyIcon(_detectedUrgency),
+                                color: isOffline ? Colors.grey[600] : _getUrgencyColor(_detectedUrgency),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                            ],
                               Expanded(
                                 child: Text(
                                   isOffline ? AppLocalizations.of(context)!.medium : (_isDetectingUrgency ? "Detecting urgency..." :
@@ -924,7 +924,7 @@ If you're uncertain, err on the side of marking it as not a duplicate (false).
                                   style: textTheme.bodyLarge?.copyWith(
                                     fontSize: 15,
                                     color: isOffline ? Colors.grey[600] : (_isDetectingUrgency ? Colors.orange.shade800 :
-                                           (_detectedUrgency == null ? Colors.grey[700] : _getUrgencyColor(_detectedUrgency!))),
+                                           (_detectedUrgency == null ? Colors.grey[700] : _getUrgencyColor(_detectedUrgency))),
                                     fontStyle: _detectedUrgency == null && !_isDetectingUrgency && !isOffline ? FontStyle.italic : FontStyle.normal,
                                     fontWeight: _detectedUrgency != null || isOffline ? FontWeight.w600 : FontWeight.normal,
                                   ),

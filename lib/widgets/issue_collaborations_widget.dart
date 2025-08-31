@@ -13,55 +13,113 @@ class IssueCollaborationsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('issue_collaborations')
-          .where('issueId', isEqualTo: issueId)
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
 
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                l10n!.collaboration,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey),
+    // Wrap in error boundary to prevent crashes
+    return Container(
+      constraints: const BoxConstraints(maxWidth: double.infinity),
+      child: StreamBuilder<QuerySnapshot>(
+        stream:
+            FirebaseFirestore.instance
+                .collection('issue_collaborations')
+                .where('issueId', isEqualTo: issueId)
+                .orderBy('timestamp', descending: true)
+                .limit(10) // Limit to prevent performance issues
+                .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              child: const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.grey[600]),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Collaborations temporarily unavailable',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.group_work_outlined, color: Colors.grey[600]),
+                  const SizedBox(width: 8),
+                  Text(
+                    'No collaborations yet. Be the first to contribute!',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Container(
+            constraints: const BoxConstraints(maxWidth: double.infinity),
+            child: Column(
+              children:
+                  snapshot.data!.docs.map((doc) {
+                    try {
+                      final data = doc.data() as Map<String, dynamic>;
+                      return _buildCollaborationItem(context, data);
+                    } catch (e) {
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Error loading collaboration',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      );
+                    }
+                  }).toList(),
             ),
           );
-        }
-
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (context, index) {
-            final doc = snapshot.data!.docs[index];
-            final data = doc.data() as Map<String, dynamic>;
-            return _buildCollaborationItem(context, data);
-          },
-        );
-      },
+        },
+      ),
     );
   }
 
-  Widget _buildCollaborationItem(BuildContext context, Map<String, dynamic> data) {
+  Widget _buildCollaborationItem(
+    BuildContext context,
+    Map<String, dynamic> data,
+  ) {
     final contributionType = data['contributionType'] as String;
     final username = data['username'] as String;
     final timestamp = data['timestamp'] as Timestamp?;
-    final formattedDate = timestamp != null
-        ? DateFormat('MMM d, yyyy • h:mm a').format(timestamp.toDate())
-        : 'Recently';
+    final formattedDate =
+        timestamp != null
+            ? DateFormat('MMM d, yyyy • h:mm a').format(timestamp.toDate())
+            : 'Recently';
 
     // Get icon and color based on contribution type
     IconData icon;
@@ -130,11 +188,11 @@ class IssueCollaborationsWidget extends StatelessWidget {
                 ),
               ],
             ),
-            if (data.containsKey('text') && data['text'] != null) ...[  
+            if (data.containsKey('text') && data['text'] != null) ...[
               const SizedBox(height: 12),
               Text(data['text'] as String),
             ],
-            if (data.containsKey('imageUrls') && data['imageUrls'] != null) ...[  
+            if (data.containsKey('imageUrls') && data['imageUrls'] != null) ...[
               const SizedBox(height: 12),
               _buildImageGallery(data['imageUrls'] as List<dynamic>),
             ],
@@ -156,22 +214,22 @@ class IssueCollaborationsWidget extends StatelessWidget {
             child: Container(
               width: 120,
               margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: CachedNetworkImage(
                   imageUrl: imageUrls[index],
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[200],
-                    child: const Center(child: CircularProgressIndicator()),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.error),
-                  ),
+                  placeholder:
+                      (context, url) => Container(
+                        color: Colors.grey[200],
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                  errorWidget:
+                      (context, url, error) => Container(
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.error),
+                      ),
                 ),
               ),
             ),
@@ -184,26 +242,29 @@ class IssueCollaborationsWidget extends StatelessWidget {
   void _showFullScreenImage(BuildContext context, String imageUrl) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colors.black,
-            iconTheme: const IconThemeData(color: Colors.white),
-          ),
-          backgroundColor: Colors.black,
-          body: Center(
-            child: InteractiveViewer(
-              panEnabled: true,
-              boundaryMargin: const EdgeInsets.all(20),
-              minScale: 0.5,
-              maxScale: 4,
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                placeholder: (context, url) => const CircularProgressIndicator(),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
+        builder:
+            (context) => Scaffold(
+              appBar: AppBar(
+                backgroundColor: Colors.black,
+                iconTheme: const IconThemeData(color: Colors.white),
+              ),
+              backgroundColor: Colors.black,
+              body: Center(
+                child: InteractiveViewer(
+                  panEnabled: true,
+                  boundaryMargin: const EdgeInsets.all(20),
+                  minScale: 0.5,
+                  maxScale: 4,
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    placeholder:
+                        (context, url) => const CircularProgressIndicator(),
+                    errorWidget:
+                        (context, url, error) => const Icon(Icons.error),
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
       ),
     );
   }

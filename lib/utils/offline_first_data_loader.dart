@@ -193,7 +193,7 @@ class OfflineFirstDataLoader {
         },
       );
     } catch (e) {
-      timeoutTimer?.cancel();
+      timeoutTimer.cancel();
       developer.log("OfflineFirstDataLoader: Failed to create stream: $e, using fallback", 
           name: "OfflineFirstDataLoader");
       if (!controller.isClosed) {

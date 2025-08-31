@@ -139,15 +139,14 @@ class NotificationService {
       if (navigateTo == '/issue_details' &&
           issueId != null &&
           issueId.isNotEmpty) {
-        navigatorKey.currentState?.pushNamed(
-          '/issue_details',
-          arguments: issueId,
-        );
+        _navigateToIssueFromNotification(issueId);
+      } else if (navigateTo == '/notifications') {
+        _navigateToNotificationsTab();
       } else {
         navigatorKey.currentState?.pushNamed(navigateTo);
       }
     } else {
-      navigatorKey.currentState?.pushNamed('/notifications');
+      _navigateToNotificationsTab();
     }
   }
 
@@ -166,23 +165,56 @@ class NotificationService {
     if (navigateTo == '/issue_details' &&
         issueId != null &&
         issueId.isNotEmpty) {
+      _navigateToIssueFromNotification(issueId);
+    } else if (notificationType == 'new_comment' ||
+        notificationType == 'status_update') {
+      if (issueId != null && issueId.isNotEmpty) {
+        _navigateToIssueFromNotification(issueId);
+      } else {
+        _navigateToNotificationsTab();
+      }
+    } else if (navigateTo == '/notifications') {
+      _navigateToNotificationsTab();
+    } else {
+      navigatorKey.currentState?.pushNamed(navigateTo);
+    }
+  }
+
+  void _navigateToIssueFromNotification(String issueId) {
+    log(
+      'Navigating to issue details from notification: $issueId',
+      name: 'NotificationService',
+    );
+
+    // First navigate to main app (notifications tab - index 3)
+    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      '/app',
+      (route) => false,
+      arguments: {'initialTabIndex': 3},
+    );
+
+    // Then navigate to issue details after a short delay to ensure main app is loaded
+    Future.delayed(const Duration(milliseconds: 300), () {
+      log(
+        'Navigating to issue details screen with issueId: $issueId',
+        name: 'NotificationService',
+      );
       navigatorKey.currentState?.pushNamed(
         '/issue_details',
         arguments: issueId,
       );
-    } else if (notificationType == 'new_comment' ||
-        notificationType == 'status_update') {
-      if (issueId != null && issueId.isNotEmpty) {
-        navigatorKey.currentState?.pushNamed(
-          '/issue_details',
-          arguments: issueId,
-        );
-      } else {
-        navigatorKey.currentState?.pushNamed('/notifications');
-      }
-    } else {
-      navigatorKey.currentState?.pushNamed(navigateTo);
-    }
+    });
+  }
+
+  void _navigateToNotificationsTab() {
+    log('Navigating to notifications tab', name: 'NotificationService');
+
+    // Navigate to main app and switch to notifications tab (index 3)
+    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      '/app',
+      (route) => false,
+      arguments: {'initialTabIndex': 3},
+    );
   }
 
   void _showLocalNotification(RemoteMessage message) async {

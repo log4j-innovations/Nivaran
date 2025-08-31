@@ -8,7 +8,6 @@ import 'package:modern_auth_app/models/local_issue_model.dart';
 import 'package:modern_auth_app/models/app_user_model.dart';
 import 'package:modern_auth_app/models/issue_model.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'dart:io';
 import 'dart:developer' as developer;
 
 // Mock ConnectivityService for end-to-end testing

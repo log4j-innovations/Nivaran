@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:modern_auth_app/screens/language_selection_screen.dart';
 import 'package:modern_auth_app/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:modern_auth_app/services/localization_service.dart';
 
 class InitialRouteManager extends StatefulWidget {
   const InitialRouteManager({super.key});
@@ -11,45 +11,36 @@ class InitialRouteManager extends StatefulWidget {
 }
 
 class _InitialRouteManagerState extends State<InitialRouteManager> {
-  late Future<bool> _isFirstLaunchFuture;
+  late Future<bool> _hasSelectedLanguageFuture;
 
   @override
   void initState() {
     super.initState();
-    _isFirstLaunchFuture = _checkFirstLaunch();
+    _hasSelectedLanguageFuture = _checkLanguageSelection();
   }
 
-  Future<bool> _checkFirstLaunch() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isFirstLaunch = prefs.getBool('first_launch') ?? true;
-    if (isFirstLaunch) {
-      await prefs.setBool('first_launch', false);
-    }
-    return isFirstLaunch;
+  Future<bool> _checkLanguageSelection() async {
+    return await LocalizationService.hasSelectedLanguage();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: _isFirstLaunchFuture,
+      future: _hasSelectedLanguageFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         } else if (snapshot.hasError) {
           return Scaffold(
-            body: Center(
-              child: Text('Error: ${snapshot.error}'),
-            ),
+            body: Center(child: Text('Error: ${snapshot.error}')),
           );
         } else {
-          final bool isFirstLaunch = snapshot.data ?? true;
-          return isFirstLaunch
-              ? const LanguageSelectionScreen()
-              : const InitialAuthCheck();
+          final bool hasSelectedLanguage = snapshot.data ?? false;
+          return hasSelectedLanguage
+              ? const InitialAuthCheck()
+              : const LanguageSelectionScreen();
         }
       },
     );

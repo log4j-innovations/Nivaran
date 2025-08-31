@@ -17,7 +17,7 @@ class MainActivity : FlutterActivity() {
         
         // Set the App Check debug token before configuring the provider
         // This ensures the debug token is available for both debug and release builds
-        System.setProperty("firebase.appcheck.debug_token", "1231047E-3829-4417-B789-EFA8DB5BF29E")
+        System.setProperty("firebase.appcheck.debug_token", "EB4958FE-A4F0-4C91-AB91-74A3C6791FA6")
         
         // Configure App Check with debug provider
         val firebaseAppCheck = FirebaseAppCheck.getInstance()

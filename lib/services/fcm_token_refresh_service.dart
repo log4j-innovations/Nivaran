@@ -161,7 +161,7 @@ class FCMTokenRefreshService {
       log('💾 Fresh token stored in Firestore', name: 'FCMRefresh');
     } catch (e) {
       log('❌ Error storing token: $e', name: 'FCMRefresh');
-      throw e;
+      rethrow;
     }
   }
 

@@ -69,14 +69,14 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with WidgetsB
                 SizedBox(height: screenHeight * 0.15), 
                 
                 AuthButton(
-                  text: AppLocalizations.of(context)!.citizen,
+                  text: AppLocalizations.of(context)?.citizen ?? 'Citizen',
                   onPressed: () {
                     Navigator.pushNamed(context, '/auth_options', arguments: 'citizen');
                   },
                 ),
                 SizedBox(height: screenHeight * 0.015),
                 AuthButton( 
-                  text: AppLocalizations.of(context)!.publicDashboard,
+                  text: AppLocalizations.of(context)?.publicDashboard ?? 'Public Dashboard',
       
                   backgroundColor: Colors.grey.shade200,
                   textColor: Colors.black,
@@ -88,7 +88,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with WidgetsB
                  Padding(
                    padding: const EdgeInsets.only(bottom: 20.0),
                    child: Text(
-                    AppLocalizations.of(context)!.yourVoiceOurAction,
+                    AppLocalizations.of(context)?.yourVoiceOurAction ?? 'Your Voice, Our Action',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey[600], fontSize: 13),
                    ),

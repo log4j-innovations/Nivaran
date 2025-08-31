@@ -15,10 +15,12 @@ import '../widgets/offline_banner.dart';
 import '../widgets/sync_status_widget.dart';
 import '../utils/update_checker.dart';
 import 'dart:developer' as developer;
-import 'package:flutter/foundation.dart';
+import '../services/connectivity_service.dart';
 
 class MainAppScaffold extends StatefulWidget {
-  const MainAppScaffold({super.key});
+  final int? initialTabIndex;
+
+  const MainAppScaffold({super.key, this.initialTabIndex});
 
   @override
   State<MainAppScaffold> createState() => _MainAppScaffoldState();
@@ -26,7 +28,7 @@ class MainAppScaffold extends StatefulWidget {
 
 class _MainAppScaffoldState extends State<MainAppScaffold>
     with WidgetsBindingObserver {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   User? _currentUser;
   bool _hasCheckedUpdate = false;
 
@@ -40,11 +42,26 @@ class _MainAppScaffoldState extends State<MainAppScaffold>
     AccountScreen(key: UniqueKey()),
   ];
 
+  void _initializeWidgetOptions() {
+    _widgetOptions.clear();
+    _widgetOptions.add(const IssuesListScreen());
+    _widgetOptions.add(const CameraCaptureScreen());
+    _widgetOptions.add(const MapViewScreen());
+    _widgetOptions.add(const NotificationsScreen());
+    _widgetOptions.add(
+      const CommunityImpactScreen(),
+    ); // Added Community Impact Dashboard
+    _widgetOptions.add(AccountScreen(key: UniqueKey()));
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _currentUser = FirebaseAuth.instance.currentUser;
+
+    // Set initial tab index (notifications tab is index 3)
+    _selectedIndex = widget.initialTabIndex ?? 0;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -180,121 +197,126 @@ class _MainAppScaffoldState extends State<MainAppScaffold>
 
   @override
   Widget build(BuildContext context) {
-    if (_currentUser == null) {
-      developer.log(
-        "MainAppScaffold: Current user is null, showing loading. AuthWrapper should redirect.",
-        name: "MainAppScaffold",
-      );
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(semanticsLabel: "Authenticating..."),
-        ),
-      );
-    }
+    return Consumer2<UserProfileService, OfflineSyncService>(
+      builder: (context, userProfileService, offlineSyncService, child) {
+        final userProfile = userProfileService.currentUserProfile;
+        final isOnline = context.read<ConnectivityService>().isOnline;
 
-    // Check if UserProfile is loading. If so, show loading indicator for the whole scaffold.
-    // This prevents individual screens from trying to access a null profile prematurely.
-    final userProfileService = Provider.of<UserProfileService>(context);
-    if (userProfileService.isLoadingProfile &&
-        userProfileService.currentUserProfile == null) {
-      developer.log(
-        "MainAppScaffold: UserProfileService is loading initial profile. Showing loading screen.",
-        name: "MainAppScaffold",
-      );
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(
-            semanticsLabel: "Loading user profile...",
-          ),
-        ),
-      );
-    }
+        // Initialize widget options if not already done
+        if (_widgetOptions.isEmpty) {
+          _initializeWidgetOptions();
+        }
 
-    return Scaffold(
-      body: Column(
-        children: [
-          // Offline banner will only show when app is offline
-          const OfflineBanner(),
+        if (_currentUser == null) {
+          developer.log(
+            "MainAppScaffold: Current user is null, showing loading. AuthWrapper should redirect.",
+            name: "MainAppScaffold",
+          );
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(
+                semanticsLabel: "Authenticating...",
+              ),
+            ),
+          );
+        }
 
-          // Sync status widget will show when syncing or after sync completion
-          const SyncStatusWidget(showOnlyWhenSyncing: false),
+        // Check if UserProfile is loading. If so, show loading indicator for the whole scaffold.
+        // This prevents individual screens from trying to access a null profile prematurely.
+        if (userProfileService.isLoadingProfile &&
+            userProfileService.currentUserProfile == null) {
+          developer.log(
+            "MainAppScaffold: UserProfileService is loading initial profile. Showing loading screen.",
+            name: "MainAppScaffold",
+          );
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(
+                semanticsLabel: "Loading user profile...",
+              ),
+            ),
+          );
+        }
 
-          // Main content area
-          Expanded(
-            child: IndexedStack(
-              index: _selectedIndex,
-              children: _widgetOptions,
-            ),
+        return Scaffold(
+          body: Column(
+            children: [
+              // Offline banner will only show when app is offline
+              const OfflineBanner(),
+
+              // Sync status widget will show when syncing or after sync completion
+              const SyncStatusWidget(showOnlyWhenSyncing: false),
+
+              // Main content area
+              Expanded(
+                child: IndexedStack(
+                  index: _selectedIndex,
+                  children: _widgetOptions,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(
-              _selectedIndex == 0
-                  ? Icons.list_alt_rounded
-                  : Icons.list_alt_outlined,
-            ),
-            label: AppLocalizations.of(context)!.feed,
+          bottomNavigationBar: BottomNavigationBar(
+            items: <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(
+                  _selectedIndex == 0
+                      ? Icons.list_alt_rounded
+                      : Icons.list_alt_outlined,
+                ),
+                label: AppLocalizations.of(context)!.feed,
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  _selectedIndex == 1
+                      ? Icons.camera_alt
+                      : Icons.camera_alt_outlined,
+                ),
+                label: AppLocalizations.of(context)!.report,
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  _selectedIndex == 2 ? Icons.map : Icons.map_outlined,
+                ),
+                label: AppLocalizations.of(context)!.map,
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  _selectedIndex == 3
+                      ? Icons.notifications
+                      : Icons.notifications_outlined,
+                ),
+                label: AppLocalizations.of(context)!.notifications,
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  _selectedIndex == 4
+                      ? Icons.bar_chart
+                      : Icons.bar_chart_outlined,
+                ),
+                label: AppLocalizations.of(context)!.communityImpact,
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  _selectedIndex == 5 ? Icons.person : Icons.person_outlined,
+                ),
+                label: AppLocalizations.of(context)!.profile,
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: Colors.black,
+            unselectedItemColor: Colors.grey[600],
+            onTap: _onItemTapped,
+            type: BottomNavigationBarType.fixed,
+            showSelectedLabels: true,
+            showUnselectedLabels: true,
+            backgroundColor: Colors.white,
+            elevation: 8.0,
+            selectedFontSize: 12.0,
+            unselectedFontSize: 10.0,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              _selectedIndex == 1
-                  ? Icons.camera_alt
-                  : Icons.camera_alt_outlined,
-            ),
-            label: AppLocalizations.of(context)!.report,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(_selectedIndex == 2 ? Icons.map : Icons.map_outlined),
-            label: AppLocalizations.of(context)!.map,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              _selectedIndex == 3
-                  ? Icons.notifications
-                  : Icons.notifications_outlined,
-            ),
-            label: AppLocalizations.of(context)!.notifications,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              _selectedIndex == 4 ? Icons.bar_chart : Icons.bar_chart_outlined,
-            ),
-            label: AppLocalizations.of(context)!.communityImpact,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              _selectedIndex == 5 ? Icons.person : Icons.person_outlined,
-            ),
-            label: AppLocalizations.of(context)!.profile,
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey[600],
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        backgroundColor: Colors.white,
-        elevation: 8.0,
-        selectedFontSize: 12.0,
-        unselectedFontSize: 10.0,
-      ),
-      // Debug floating action button (only in debug mode)
-      floatingActionButton:
-          kDebugMode
-              ? FloatingActionButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/notification_debug');
-                },
-                backgroundColor: Colors.red,
-                child: const Icon(Icons.bug_report, color: Colors.white),
-                heroTag: "debug_fab",
-              )
-              : null,
+        );
+      },
     );
   }
 }

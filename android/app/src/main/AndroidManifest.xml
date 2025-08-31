@@ -47,7 +47,7 @@
         <!-- App Check Debug Token for manual APK distribution -->
         <meta-data
             android:name="firebase.appcheck.debug_token"
-            android:value="1231047E-3829-4417-B789-EFA8DB5BF29E" />
+            android:value="EB4958FE-A4F0-4C91-AB91-74A3C6791FA6" />
 
 
         <activity

@@ -21,79 +21,117 @@ class IssueTimelineWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(
-            l10n!.timeline,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
         if (statusUpdates.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text('No status updates available yet.'),
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.timeline, color: Colors.grey[600]),
+                const SizedBox(width: 8),
+                Text(
+                  'No status updates available yet.',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              ],
+            ),
           )
         else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: statusUpdates.length,
-            itemBuilder: (context, index) {
-              final update = statusUpdates[index];
-              final timestamp = update['timestamp'] as Timestamp;
-              final status = update['status'] as String;
-              final updatedBy = update['updatedBy'] as String? ?? 'System';
-              final comments = update['comments'] as String? ?? '';
-              
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      children: [
-                        Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: _getStatusColor(status),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        if (index < statusUpdates.length - 1)
-                          Container(
-                            width: 2,
-                            height: 50,
-                            color: Colors.grey[300],
-                          ),
-                      ],
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            status,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            DateFormat('MMM dd, yyyy - hh:mm a').format(timestamp.toDate()),
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                          ),
-                          Text('${l10n.status}: $updatedBy'),
-                          if (comments.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(comments),
+          Container(
+            constraints: const BoxConstraints(maxWidth: double.infinity),
+            child: Column(
+              children:
+                  statusUpdates.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final update = entry.value;
+
+                    try {
+                      final timestamp = update['timestamp'] as Timestamp?;
+                      final status = update['status'] as String? ?? 'Unknown';
+                      final updatedBy =
+                          update['updatedBy'] as String? ?? 'System';
+                      final comments = update['comments'] as String? ?? '';
+
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              children: [
+                                Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    color: _getStatusColor(status),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                if (index < statusUpdates.length - 1)
+                                  Container(
+                                    width: 2,
+                                    height: 50,
+                                    color: Colors.grey[300],
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    status,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  if (timestamp != null)
+                                    Text(
+                                      DateFormat(
+                                        'MMM dd, yyyy - hh:mm a',
+                                      ).format(timestamp.toDate()),
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  Text('Updated by: $updatedBy'),
+                                  if (comments.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(comments),
+                                  ],
+                                  const SizedBox(height: 16),
+                                ],
+                              ),
+                            ),
                           ],
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                        ),
+                      );
+                    } catch (e) {
+                      // Return a safe fallback widget if there's an error parsing the update
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Error loading status update',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      );
+                    }
+                  }).toList(),
+            ),
           ),
       ],
     );

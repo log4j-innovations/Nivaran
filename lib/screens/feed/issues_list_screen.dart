@@ -273,7 +273,7 @@ class _IssuesListScreenState extends State<IssuesListScreen> {
             .snapshots()
             .map((snapshot) {
               return snapshot.docs.map((doc) {
-                final issueData = doc.data() as Map<String, dynamic>;
+                final issueData = doc.data();
                 return Issue.fromFirestore(issueData, doc.id);
               }).toList();
             }),

@@ -40,7 +40,7 @@ android {
         multiDexEnabled = true // ADDED: Good to have, especially with many dependencies
         
         // Add App Check debug token as a build config field
-        buildConfigField("String", "APP_CHECK_DEBUG_TOKEN", "\"1231047E-3829-4417-B789-EFA8DB5BF29E\"")
+        buildConfigField("String", "APP_CHECK_DEBUG_TOKEN", "\"EB4958FE-A4F0-4C91-AB91-74A3C6791FA6\"")
     }
 
     buildTypes {

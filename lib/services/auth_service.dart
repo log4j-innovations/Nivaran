@@ -62,8 +62,9 @@ class AuthService {
       );
       // Optionally sign out the Firebase user if Google auth succeeded but subsequent steps failed
       if (_auth.currentUser != null) {
-        if (context.mounted)
+        if (context.mounted) {
           await signOut(context); // Check mounted before async call
+        }
       }
       return null;
     }

@@ -4,10 +4,11 @@ import 'dart:io';
 // Firebase imports (commented out but kept for future reference)
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:uuid/uuid.dart'; // For generating unique filenames
 import 'dart:developer' as developer;
+import '../secrets.dart';
 // import 'package:cloudinary_public/cloudinary_public.dart';
-// import '../secrets.dart';
 
 class ImageUploadService {
   // Firebase Storage fields (commented out but kept for future reference)
@@ -28,15 +29,57 @@ class ImageUploadService {
     //              name: 'ImageUploadService');
   }
 
-  // Firebase Storage implementation (commented out but kept for future reference)
+  // Firebase Storage implementation with App Check support
   Future<String?> uploadImage(File imageFile) async {
+    developer.log(
+      'Starting image upload process...',
+      name: 'ImageUploadService',
+    );
+
     final User? currentUser = _auth.currentUser;
     if (currentUser == null) {
       developer.log(
-        'User not authenticated, cannot upload image.',
+        '❌ User not authenticated, cannot upload image.',
         name: 'ImageUploadService',
       );
       throw Exception('User not authenticated. Cannot upload image.');
+    }
+
+    developer.log(
+      '✅ User authenticated: ${currentUser.uid}',
+      name: 'ImageUploadService',
+    );
+
+    // Verify App Check token before upload
+    try {
+      developer.log('Checking App Check token...', name: 'ImageUploadService');
+      final appCheckToken = await FirebaseAppCheck.instance.getToken();
+
+      if (appCheckToken == null || appCheckToken.isEmpty) {
+        developer.log(
+          '❌ App Check token is null or empty. Debug token: $app_debug_token',
+          name: 'ImageUploadService',
+        );
+        developer.log(
+          '⚠️ This will likely cause upload to fail. Check Firebase Console App Check settings.',
+          name: 'ImageUploadService',
+        );
+        // Continue anyway for debugging
+      } else {
+        developer.log(
+          '✅ App Check token verified successfully (length: ${appCheckToken.length})',
+          name: 'ImageUploadService',
+        );
+      }
+    } catch (appCheckError) {
+      developer.log(
+        '❌ App Check verification failed: $appCheckError',
+        name: 'ImageUploadService',
+      );
+      developer.log(
+        '⚠️ Continuing with upload, but it may fail due to App Check issues',
+        name: 'ImageUploadService',
+      );
     }
 
     try {
@@ -74,15 +117,65 @@ class ImageUploadService {
       return downloadUrl;
     } on firebase_storage.FirebaseException catch (e) {
       developer.log(
-        'Firebase Storage Error: ${e.code} - ${e.message}',
+        '❌ Firebase Storage Error: ${e.code} - ${e.message}',
         name: 'ImageUploadService',
         error: e,
       );
-      // Handle specific Firebase Storage errors
-      // e.g., e.code == 'object-not-found', 'unauthorized', 'canceled', etc.
-      throw Exception(
-        'Failed to upload image to Firebase Storage. Error: ${e.message}',
-      );
+
+      // Provide specific error messages and solutions
+      String errorMessage;
+      String suggestion;
+
+      switch (e.code) {
+        case 'unauthorized':
+          errorMessage =
+              'Upload unauthorized - App Check or authentication issue';
+          suggestion =
+              'Check: 1) User is logged in, 2) App Check debug token is in Firebase Console, 3) Storage rules allow authenticated users';
+          break;
+        case 'permission-denied':
+          errorMessage =
+              'Permission denied - Storage rules or authentication issue';
+          suggestion =
+              'Check Firebase Storage rules and ensure user is authenticated';
+          break;
+        case 'unauthenticated':
+          errorMessage = 'User not authenticated';
+          suggestion = 'User must be logged in to upload images';
+          break;
+        case 'app-check-token-invalid':
+          errorMessage = 'App Check token is invalid';
+          suggestion =
+              'Add debug token $app_debug_token to Firebase Console App Check settings';
+          break;
+        default:
+          errorMessage = 'Upload failed: ${e.message}';
+          suggestion = 'Check network connection and Firebase configuration';
+      }
+
+      developer.log('💡 Suggestion: $suggestion', name: 'ImageUploadService');
+
+      // Check if this is an App Check related error
+      if (e.code == 'unauthorized' ||
+          e.code == 'permission-denied' ||
+          e.message?.contains('App Check') == true ||
+          e.message?.contains('appcheck') == true) {
+        developer.log('🔍 App Check Debug Info:', name: 'ImageUploadService');
+        developer.log(
+          '   Debug token: $app_debug_token',
+          name: 'ImageUploadService',
+        );
+        developer.log(
+          '   Make sure this token is added to Firebase Console > App Check > Debug tokens',
+          name: 'ImageUploadService',
+        );
+        developer.log(
+          '   Storage bucket: authapp-3bd50.firebasestorage.app',
+          name: 'ImageUploadService',
+        );
+      }
+
+      throw Exception('$errorMessage. $suggestion');
     } catch (e, s) {
       developer.log(
         'Upload Image Exception: $e',

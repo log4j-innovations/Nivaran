@@ -5,14 +5,12 @@ import 'package:provider/provider.dart';
 import 'package:modern_auth_app/services/connectivity_service.dart';
 import 'package:modern_auth_app/services/offline_sync_service.dart';
 import 'package:modern_auth_app/services/local_data_service.dart';
-import 'package:modern_auth_app/models/local_issue_model.dart';
 import 'package:modern_auth_app/models/app_user_model.dart';
 import 'package:modern_auth_app/models/issue_model.dart';
 import 'package:modern_auth_app/widgets/offline_banner.dart';
 import 'package:modern_auth_app/l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'dart:async';
 
 // Mock ConnectivityService for testing
 class MockConnectivityService extends ConnectivityService {

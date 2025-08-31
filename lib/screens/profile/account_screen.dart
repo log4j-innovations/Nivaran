@@ -6,7 +6,7 @@ import '../../services/auth_service.dart';
 import '../../services/user_profile_service.dart';
 import '../../models/app_user_model.dart';
 import '../../services/locale_provider.dart';
-import '../initial_route_manager.dart';
+import '../../services/localization_service.dart';
 import 'my_reported_issues_screen.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -207,7 +207,8 @@ class AccountScreen extends StatelessWidget {
           _buildListTile(
             context: context,
             icon: Icons.sync_problem_outlined,
-            title: "Unsynced Issues",
+            title: AppLocalizations.of(context)!.unsyncedIssues,
+            subtitle: AppLocalizations.of(context)!.viewAndManageOfflineIssues,
             onTap: () {
               Navigator.pushNamed(context, '/unsynced_issues');
             },
@@ -228,36 +229,14 @@ class AccountScreen extends StatelessWidget {
           _buildListTile(
             context: context,
             icon: Icons.help_outline_rounded,
-            title: AppLocalizations.of(context)!.settings,
+            title: "Help & Support",
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Help & Support - Coming Soon!")),
               );
             },
           ),
-          _buildListTile(
-            context: context,
-            icon: Icons.settings_outlined,
-            title: AppLocalizations.of(context)!.settings,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("App Settings - Coming Soon!")),
-              );
-            },
-          ),
 
-          // Debug section (only show in development)
-          const SizedBox(height: 10),
-          _buildSectionTitle(context, "🔧 Debug Tools"),
-          _buildListTile(
-            context: context,
-            icon: Icons.bug_report,
-            title: "🚨 Push Notification Debug",
-            subtitle: "Test and troubleshoot push notifications",
-            onTap: () {
-              Navigator.pushNamed(context, '/notification_debug');
-            },
-          ),
           _buildListTile(
             context: context,
             icon: Icons.language,
@@ -265,24 +244,75 @@ class AccountScreen extends StatelessWidget {
             trailing: DropdownButton<Locale>(
               value: Provider.of<LocaleProvider>(context).locale,
               icon: const Icon(Icons.arrow_drop_down),
-              onChanged: (Locale? newLocale) {
+              onChanged: (Locale? newLocale) async {
                 if (newLocale != null) {
+                  // Save the selected language
+                  await LocalizationService.setLocale(newLocale.languageCode);
+
+                  // Update the app locale
                   Provider.of<LocaleProvider>(
                     context,
                     listen: false,
                   ).setLocale(newLocale);
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const InitialRouteManager(),
-                    ),
-                    (route) => false,
-                  );
+
+                  // Show success message
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Language changed to ${LocalizationService.getLanguageName(newLocale.languageCode)}',
+                        ),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 }
               },
-              items: const [
-                DropdownMenuItem(value: Locale('en'), child: Text("English")),
-                DropdownMenuItem(value: Locale('hi'), child: Text("हिंदी")),
+              items: [
+                const DropdownMenuItem(
+                  value: Locale('en'),
+                  child: Text("🇺🇸 English"),
+                ),
+                const DropdownMenuItem(
+                  value: Locale('hi'),
+                  child: Text("🇮🇳 हिन्दी"),
+                ),
+                const DropdownMenuItem(
+                  value: Locale('gu'),
+                  child: Text("🇮🇳 ગુજરાતી"),
+                ),
+                const DropdownMenuItem(
+                  value: Locale('bn'),
+                  child: Text("🇮🇳 বাংলা"),
+                ),
+                const DropdownMenuItem(
+                  value: Locale('ta'),
+                  child: Text("🇮🇳 தமிழ்"),
+                ),
+                const DropdownMenuItem(
+                  value: Locale('te'),
+                  child: Text("🇮🇳 తెలుగు"),
+                ),
+                const DropdownMenuItem(
+                  value: Locale('mr'),
+                  child: Text("🇮🇳 मराठी"),
+                ),
+                const DropdownMenuItem(
+                  value: Locale('kn'),
+                  child: Text("🇮🇳 ಕನ್ನಡ"),
+                ),
+                const DropdownMenuItem(
+                  value: Locale('ml'),
+                  child: Text("🇮🇳 മലയാളം"),
+                ),
+                const DropdownMenuItem(
+                  value: Locale('pa'),
+                  child: Text("🇮🇳 ਪੰਜਾਬੀ"),
+                ),
+                const DropdownMenuItem(
+                  value: Locale('or'),
+                  child: Text("🇮🇳 ଓଡ଼ିଆ"),
+                ),
               ],
             ),
             onTap: () {
