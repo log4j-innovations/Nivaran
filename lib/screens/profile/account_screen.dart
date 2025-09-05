@@ -6,7 +6,7 @@ import '../../services/auth_service.dart';
 import '../../services/user_profile_service.dart';
 import '../../models/app_user_model.dart';
 import '../../services/locale_provider.dart';
-import '../../services/localization_service.dart';
+import '../initial_route_manager.dart';
 import 'my_reported_issues_screen.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -244,75 +244,25 @@ class AccountScreen extends StatelessWidget {
             trailing: DropdownButton<Locale>(
               value: Provider.of<LocaleProvider>(context).locale,
               icon: const Icon(Icons.arrow_drop_down),
-              onChanged: (Locale? newLocale) async {
+              onChanged: (Locale? newLocale) {
                 if (newLocale != null) {
-                  // Save the selected language
-                  await LocalizationService.setLocale(newLocale.languageCode);
-
-                  // Update the app locale
                   Provider.of<LocaleProvider>(
                     context,
                     listen: false,
                   ).setLocale(newLocale);
-
-                  // Show success message
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Language changed to ${LocalizationService.getLanguageName(newLocale.languageCode)}',
-                        ),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  }
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const InitialRouteManager(),
+                    ),
+                    (route) => false,
+                  );
                 }
               },
-              items: [
-                const DropdownMenuItem(
-                  value: Locale('en'),
-                  child: Text("🇺🇸 English"),
-                ),
-                const DropdownMenuItem(
-                  value: Locale('hi'),
-                  child: Text("🇮🇳 हिन्दी"),
-                ),
-                const DropdownMenuItem(
-                  value: Locale('gu'),
-                  child: Text("🇮🇳 ગુજરાતી"),
-                ),
-                const DropdownMenuItem(
-                  value: Locale('bn'),
-                  child: Text("🇮🇳 বাংলা"),
-                ),
-                const DropdownMenuItem(
-                  value: Locale('ta'),
-                  child: Text("🇮🇳 தமிழ்"),
-                ),
-                const DropdownMenuItem(
-                  value: Locale('te'),
-                  child: Text("🇮🇳 తెలుగు"),
-                ),
-                const DropdownMenuItem(
-                  value: Locale('mr'),
-                  child: Text("🇮🇳 मराठी"),
-                ),
-                const DropdownMenuItem(
-                  value: Locale('kn'),
-                  child: Text("🇮🇳 ಕನ್ನಡ"),
-                ),
-                const DropdownMenuItem(
-                  value: Locale('ml'),
-                  child: Text("🇮🇳 മലയാളം"),
-                ),
-                const DropdownMenuItem(
-                  value: Locale('pa'),
-                  child: Text("🇮🇳 ਪੰਜਾਬੀ"),
-                ),
-                const DropdownMenuItem(
-                  value: Locale('or'),
-                  child: Text("🇮🇳 ଓଡ଼ିଆ"),
-                ),
+              items: const [
+                DropdownMenuItem(value: Locale('en'), child: Text("English")),
+                DropdownMenuItem(value: Locale('hi'), child: Text("हिंदी")),
+                DropdownMenuItem(value: Locale('gu'), child: Text("ગુજરાતી")),
               ],
             ),
             onTap: () {

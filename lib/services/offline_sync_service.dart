@@ -267,7 +267,7 @@ class OfflineSyncService extends ChangeNotifier {
       }
 
       developer.log(
-        'Starting sync of $_totalToSync issues',
+        'Starting sync of ${_totalToSync} issues',
         name: 'OfflineSyncService',
       );
       _syncStatus =
@@ -284,7 +284,7 @@ class OfflineSyncService extends ChangeNotifier {
           _syncedCount++;
 
           developer.log(
-            'Synced issue ${issue.localId} ($_syncedCount/$_totalToSync)',
+            'Synced issue ${issue.localId} (${_syncedCount}/$_totalToSync)',
             name: 'OfflineSyncService',
           );
         } catch (e) {

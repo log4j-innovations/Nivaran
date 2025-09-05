@@ -7,7 +7,6 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:modern_auth_app/l10n/app_localizations.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:modern_auth_app/screens/auth/auth_options_screen.dart';
 import 'package:modern_auth_app/screens/auth/login_screen.dart';
 import 'package:modern_auth_app/screens/auth/signup_screen.dart';
@@ -25,7 +24,6 @@ import 'package:modern_auth_app/services/connectivity_service.dart'; // Add Conn
 import 'package:modern_auth_app/services/firestore_service.dart'; // Add FirestoreService import
 import 'package:modern_auth_app/services/image_upload_service.dart'; // Add ImageUploadService import
 import 'package:modern_auth_app/services/locale_provider.dart';
-import 'package:modern_auth_app/services/localization_service.dart';
 import 'package:modern_auth_app/services/notification_service.dart';
 import 'package:modern_auth_app/services/user_profile_service.dart';
 import 'package:modern_auth_app/services/local_data_service.dart';
@@ -447,29 +445,20 @@ class _MyAppState extends State<MyApp> {
               ),
             ),
             inputDecorationTheme: InputDecorationTheme(
-              hintStyle: TextStyle(
-                color: Colors.grey[500] ?? Colors.grey[600] ?? Colors.grey,
-                fontSize: 15,
-              ),
+              hintStyle: TextStyle(color: Colors.grey[500], fontSize: 15),
               filled: true,
-              fillColor: Colors.grey[100] ?? Colors.grey[50] ?? Colors.grey,
+              fillColor: Colors.grey[100],
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 16.0,
                 horizontal: 16.0,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide(
-                  color: Colors.grey[300] ?? Colors.grey[400] ?? Colors.grey,
-                  width: 1.0,
-                ),
+                borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide(
-                  color: Colors.grey[300] ?? Colors.grey[400] ?? Colors.grey,
-                  width: 1.0,
-                ),
+                borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.0),
@@ -483,8 +472,7 @@ class _MyAppState extends State<MyApp> {
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide(color: Colors.red.shade600, width: 1.5),
               ),
-              prefixIconColor:
-                  Colors.grey[700] ?? Colors.grey[800] ?? Colors.grey,
+              prefixIconColor: Colors.grey[700],
             ),
             textTheme: appTextTheme,
             visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -494,34 +482,31 @@ class _MyAppState extends State<MyApp> {
           ),
           debugShowCheckedModeBanner: false,
           locale: localeProvider.locale,
-          supportedLocales: LocalizationService.getSupportedLocales(),
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: homeWidget, // Use the pre-built child from the Consumer
           routes: {
             '/language_selection': (context) => const LanguageSelectionScreen(),
             '/initial_auth_check': (context) => const InitialAuthCheck(),
             '/role_selection': (context) => const RoleSelectionScreen(),
             '/auth_options': (context) {
-              final route = ModalRoute.of(context);
-              final args = route?.settings.arguments as String?;
+              final args =
+                  ModalRoute.of(context)!.settings.arguments as String?;
               return AuthOptionsScreen(userType: args ?? 'citizen');
             },
             '/login': (context) => const LoginScreen(),
             '/signup': (context) => const SignUpScreen(),
             '/verify_email_screen': (context) => const VerifyEmailScreen(),
             '/app': (context) {
-              final route = ModalRoute.of(context);
-              final args = route?.settings.arguments as Map<String, dynamic>?;
+              final args =
+                  ModalRoute.of(context)!.settings.arguments
+                      as Map<String, dynamic>?;
               return MainAppScaffold(initialTabIndex: args?['initialTabIndex']);
             },
             '/notifications': (context) => const NotificationsScreen(),
             '/issue_details': (context) {
-              final route = ModalRoute.of(context);
-              final issueId = route?.settings.arguments as String?;
+              final issueId =
+                  ModalRoute.of(context)!.settings.arguments as String?;
               return IssueDetailsScreenSimple(
                 issueId: issueId ?? 'error_no_id',
               );

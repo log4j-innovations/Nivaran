@@ -15,6 +15,7 @@ import '../widgets/offline_banner.dart';
 import '../widgets/sync_status_widget.dart';
 import '../utils/update_checker.dart';
 import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 import '../services/connectivity_service.dart';
 
 class MainAppScaffold extends StatefulWidget {

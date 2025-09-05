@@ -911,8 +911,8 @@ If you're uncertain, err on the side of marking it as not a duplicate (false).
                             children: [
                               ...[
                               Icon(
-                                _getUrgencyIcon(_detectedUrgency),
-                                color: isOffline ? Colors.grey[600] : _getUrgencyColor(_detectedUrgency),
+                                _getUrgencyIcon(_detectedUrgency!),
+                                color: isOffline ? Colors.grey[600] : _getUrgencyColor(_detectedUrgency!),
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
